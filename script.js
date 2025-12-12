@@ -25,6 +25,7 @@ const selectors = {
   paidTotal: document.querySelector("#paidTotal"),
   calculateBtn: document.querySelector("#calculateBtn"),
   copyBtn: document.querySelector("#copyBtn"),
+  clearAllBtn: document.querySelector("#clearAllBtn"),
   resultsTable: document.querySelector("#resultsTable"),
   resultsSummary: document.querySelector("#resultsSummary"),
 };
@@ -48,6 +49,41 @@ function loadState() {
     console.warn("Unable to load saved state", err);
     return null;
   }
+}
+
+function clearAll() {
+  if (!confirm("Clear all data and start a new bill? This cannot be undone.")) {
+    return;
+  }
+  // Reset state to initial empty state
+  state.people = [];
+  state.items = [];
+  state.sharedCharges = [];
+  state.paidTotal = null;
+  
+  // Clear localStorage
+  localStorage.removeItem("bill-splitter-state");
+  
+  // Clear form inputs
+  if (selectors.personName) selectors.personName.value = "";
+  if (selectors.itemLabel) selectors.itemLabel.value = "";
+  if (selectors.itemPrice) selectors.itemPrice.value = "";
+  if (selectors.itemQty) selectors.itemQty.value = "";
+  if (selectors.itemSharedDish) selectors.itemSharedDish.checked = false;
+  if (selectors.chargeLabel) selectors.chargeLabel.value = "";
+  if (selectors.chargeAmount) selectors.chargeAmount.value = "";
+  if (selectors.paidTotal) selectors.paidTotal.value = "";
+  
+  // Update quantity label
+  if (selectors.quantityLabel) {
+    selectors.quantityLabel.textContent = "Total quantity";
+    if (selectors.quantityHelp) {
+      selectors.quantityHelp.textContent = "(e.g. 15 units in a pack)";
+    }
+  }
+  
+  // Re-render everything
+  renderAll();
 }
 
 function formatCurrency(val) {
@@ -400,16 +436,20 @@ function renderConsumptionTable(focusInfo = null) {
       cell.appendChild(input);
       row.appendChild(cell);
     });
-    if (isShared) {
+    // Always add action cell if header has Actions column (to maintain table structure)
+    if (hasSharedItems) {
       const actionCell = document.createElement("td");
       actionCell.className = "action-cell";
-      const splitBtn = document.createElement("button");
-      splitBtn.type = "button";
-      splitBtn.className = "btn-small";
-      splitBtn.textContent = "Split equally";
-      splitBtn.title = "Auto-distribute equally among people with consumption > 0";
-      splitBtn.addEventListener("click", () => splitItemEqually(item.id));
-      actionCell.appendChild(splitBtn);
+      if (isShared) {
+        const splitBtn = document.createElement("button");
+        splitBtn.type = "button";
+        splitBtn.className = "btn-small";
+        splitBtn.textContent = "Split equally";
+        splitBtn.title = "Auto-distribute equally among people with consumption > 0";
+        splitBtn.addEventListener("click", () => splitItemEqually(item.id));
+        actionCell.appendChild(splitBtn);
+      }
+      // Empty cell for non-shared items to maintain alignment
       row.appendChild(actionCell);
     }
     tbody.appendChild(row);
@@ -423,7 +463,8 @@ function renderConsumptionTable(focusInfo = null) {
     const tfoot = document.createElement("tfoot");
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 5 + state.people.length;
+    // Account for Actions column if shared items exist
+    td.colSpan = 5 + state.people.length + (hasSharedItems ? 1 : 0);
     td.className = "warning";
     const detail = issues.map((i) => `${i.label}: ${formatNumber(i.delta)} remaining`).join("; ");
     td.textContent = `Consumption must sum to item quantity. Fix: ${detail}`;
@@ -509,6 +550,13 @@ function renderResults() {
 function copySummary() {
   if (!state.people.length) {
     alert("Add people first.");
+    return;
+  }
+  // Validate consumption totals match item quantities before copying
+  const issues = consumptionStats().filter((s) => Math.abs(s.delta) > 0.0001);
+  if (issues.length) {
+    const detail = issues.map((i) => `${i.label}: ${formatNumber(i.delta)} remaining`).join("; ");
+    alert(`Cannot copy: Consumption totals do not match item quantities.\n\nFix: ${detail}`);
     return;
   }
   const { perPerson } = computeTotals();
@@ -602,6 +650,7 @@ function initEventHandlers() {
 
   selectors.calculateBtn.addEventListener("click", () => renderResults());
   selectors.copyBtn.addEventListener("click", copySummary);
+  selectors.clearAllBtn.addEventListener("click", clearAll);
 }
 
 function restoreInputsFromState() {
