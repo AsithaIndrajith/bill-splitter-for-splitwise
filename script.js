@@ -13,6 +13,9 @@ const selectors = {
   itemLabel: document.querySelector("#itemLabel"),
   itemPrice: document.querySelector("#itemPrice"),
   itemQty: document.querySelector("#itemQty"),
+  itemSharedDish: document.querySelector("#itemSharedDish"),
+  quantityLabel: document.querySelector("#quantityLabel"),
+  quantityHelp: document.querySelector("#quantityHelp"),
   itemsList: document.querySelector("#itemsList"),
   consumptionTable: document.querySelector("#consumptionTable"),
   chargeForm: document.querySelector("#chargeForm"),
@@ -83,13 +86,14 @@ function removePerson(id) {
   renderAll();
 }
 
-function addItem({ label, totalPrice, totalQuantity }) {
+function addItem({ label, totalPrice, totalQuantity, itemType }) {
   if (!label.trim()) return;
   const item = {
     id: uuid(),
     label: label.trim(),
     totalPrice: Number(totalPrice) || 0,
     totalQuantity: Number(totalQuantity) || 1,
+    itemType: itemType || "units",
     consumptions: {},
   };
   state.people.forEach((p) => {
@@ -139,6 +143,32 @@ function onConsumptionChange(itemId, personId, value) {
   item.consumptions[personId] = Number.isFinite(num) ? num : 0;
   persistState();
   renderConsumptionTable(focusInfo);
+  renderResults();
+}
+
+function splitItemEqually(itemId) {
+  const item = state.items.find((it) => it.id === itemId);
+  if (!item) return;
+  const totalQty = Number(item.totalQuantity) || 1;
+  const peopleWithConsumption = state.people.filter((p) => {
+    const val = Number(item.consumptions[p.id]) || 0;
+    return val > 0;
+  });
+  if (!peopleWithConsumption.length) {
+    alert("Select at least one person first by entering a quantity > 0 for them.");
+    return;
+  }
+  const splitAmount = totalQty / peopleWithConsumption.length;
+  peopleWithConsumption.forEach((p) => {
+    item.consumptions[p.id] = splitAmount;
+  });
+  state.people.forEach((p) => {
+    if (!peopleWithConsumption.find((pc) => pc.id === p.id)) {
+      item.consumptions[p.id] = 0;
+    }
+  });
+  persistState();
+  renderConsumptionTable();
   renderResults();
 }
 
@@ -244,10 +274,12 @@ function renderItems() {
     const div = document.createElement("div");
     div.className = "list-item";
     const unit = item.totalQuantity ? item.totalPrice / item.totalQuantity : 0;
+    const typeLabel = item.itemType === "shared" ? " (Shared dish)" : "";
+    const qtyLabel = item.itemType === "shared" ? "Portions" : "Qty";
     div.innerHTML = `
       <div>
-        <strong>${item.label}</strong>
-        <p class="muted">Total: $${formatCurrency(item.totalPrice)} · Qty: ${formatCurrency(item.totalQuantity)} · Unit: $${formatCurrency(unit)}</p>
+        <strong>${item.label}${typeLabel}</strong>
+        <p class="muted">Total: $${formatCurrency(item.totalPrice)} · ${qtyLabel}: ${formatCurrency(item.totalQuantity)} · Unit: $${formatCurrency(unit)}</p>
       </div>
     `;
     const btn = document.createElement("button");
@@ -315,7 +347,10 @@ function renderConsumptionTable(focusInfo = null) {
   }
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
-  ["Item", "Unit price", "Total qty", "Consumed", "Remaining", ...state.people.map((p) => p.name)].forEach((label) => {
+  const headers = ["Item", "Unit price", "Total qty", "Consumed", "Remaining", ...state.people.map((p) => p.name)];
+  const hasSharedItems = state.items.some((it) => it.itemType === "shared");
+  if (hasSharedItems) headers.push("Actions");
+  headers.forEach((label) => {
     const th = document.createElement("th");
     th.textContent = label;
     headRow.appendChild(th);
@@ -328,15 +363,30 @@ function renderConsumptionTable(focusInfo = null) {
     const consumed = state.people.reduce((sum, p) => sum + (Number(item.consumptions[p.id]) || 0), 0);
     const remaining = (Number(item.totalQuantity) || 0) - consumed;
     const warning = Math.abs(remaining) > 0.0001;
+    const isShared = item.itemType === "shared";
+    const qtyLabel = isShared ? "Portions" : "Total qty";
     const row = document.createElement("tr");
     if (warning) row.classList.add("row-warning");
-    row.innerHTML = `
-      <td>${item.label}</td>
-      <td>$${formatCurrency(unit)}</td>
-      <td>${formatNumber(item.totalQuantity)}</td>
-      <td>${formatNumber(consumed)}</td>
-      <td class="${warning ? "warning" : ""}">${formatNumber(remaining)}</td>
-    `;
+    const firstCell = document.createElement("td");
+    firstCell.innerHTML = `${item.label}${isShared ? ' <span class="badge">Shared</span>' : ''}`;
+    row.appendChild(firstCell);
+    
+    const unitCell = document.createElement("td");
+    unitCell.textContent = `$${formatCurrency(unit)}`;
+    row.appendChild(unitCell);
+    
+    const qtyCell = document.createElement("td");
+    qtyCell.textContent = formatNumber(item.totalQuantity);
+    row.appendChild(qtyCell);
+    
+    const consumedCell = document.createElement("td");
+    consumedCell.textContent = formatNumber(consumed);
+    row.appendChild(consumedCell);
+    
+    const remainingCell = document.createElement("td");
+    remainingCell.textContent = formatNumber(remaining);
+    if (warning) remainingCell.classList.add("warning");
+    row.appendChild(remainingCell);
     state.people.forEach((person) => {
       const cell = document.createElement("td");
       const input = document.createElement("input");
@@ -344,12 +394,24 @@ function renderConsumptionTable(focusInfo = null) {
       input.min = "0";
       input.step = "any";
       input.value = item.consumptions[person.id] ?? 0;
-       input.dataset.itemId = item.id;
-       input.dataset.personId = person.id;
+      input.dataset.itemId = item.id;
+      input.dataset.personId = person.id;
       input.addEventListener("input", (e) => onConsumptionChange(item.id, person.id, e.target.value));
       cell.appendChild(input);
       row.appendChild(cell);
     });
+    if (isShared) {
+      const actionCell = document.createElement("td");
+      actionCell.className = "action-cell";
+      const splitBtn = document.createElement("button");
+      splitBtn.type = "button";
+      splitBtn.className = "btn-small";
+      splitBtn.textContent = "Split equally";
+      splitBtn.title = "Auto-distribute equally among people with consumption > 0";
+      splitBtn.addEventListener("click", () => splitItemEqually(item.id));
+      actionCell.appendChild(splitBtn);
+      row.appendChild(actionCell);
+    }
     tbody.appendChild(row);
   });
 
@@ -507,11 +569,24 @@ function initEventHandlers() {
       label: selectors.itemLabel.value,
       totalPrice: selectors.itemPrice.value,
       totalQuantity: selectors.itemQty.value,
+      itemType: selectors.itemSharedDish.checked ? "shared" : "units",
     });
     selectors.itemLabel.value = "";
     selectors.itemPrice.value = "";
     selectors.itemQty.value = "";
+    selectors.itemSharedDish.checked = false;
+    updateQuantityLabel();
   });
+
+  selectors.itemSharedDish.addEventListener("change", updateQuantityLabel);
+
+  function updateQuantityLabel() {
+    const isShared = selectors.itemSharedDish.checked;
+    selectors.quantityLabel.textContent = isShared ? "Total portions" : "Total quantity";
+    selectors.quantityHelp.textContent = isShared
+      ? "(usually 1 for a single shared dish)"
+      : "(e.g. 15 units in a pack)";
+  }
 
   selectors.chargeForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -538,6 +613,16 @@ function restoreInputsFromState() {
 function main() {
   initEventHandlers();
   restoreInputsFromState();
+  if (selectors.quantityLabel) {
+    const updateQuantityLabel = () => {
+      const isShared = selectors.itemSharedDish.checked;
+      selectors.quantityLabel.textContent = isShared ? "Total portions" : "Total quantity";
+      selectors.quantityHelp.textContent = isShared
+        ? "(usually 1 for a single shared dish)"
+        : "(e.g. 15 units in a pack)";
+    };
+    updateQuantityLabel();
+  }
   renderAll();
 }
 

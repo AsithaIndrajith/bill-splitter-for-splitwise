@@ -74,8 +74,17 @@
             <input id="itemPrice" type="number" step="0.01" min="0" placeholder="e.g. 19.80" required>
           </div>
           <div class="form-row">
-            <label>Total quantity</label>
+            <label>
+              <span id="quantityLabel">Total quantity</span>
+              <span class="help-text" id="quantityHelp">(e.g. 15 units in a pack)</span>
+            </label>
             <input id="itemQty" type="number" step="any" min="0" placeholder="e.g. 15" required>
+          </div>
+          <div class="form-row checkbox-row">
+            <label class="checkbox-label">
+              <input id="itemSharedDish" type="checkbox">
+              <span>This is a shared dish (e.g. fried rice shared by multiple people)</span>
+            </label>
           </div>
           <button type="submit">Add item</button>
         </form>
