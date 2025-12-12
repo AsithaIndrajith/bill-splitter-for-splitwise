@@ -416,6 +416,7 @@ td input:focus {
   padding: 20px;
   display: grid;
   gap: 10px;
+  margin-bottom: 20px;
 }
 
 .summary strong {
