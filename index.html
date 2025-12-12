@@ -3,8 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Item-Based Bill Splitter</title>
+  <title>Item-Based Bill Splitter | Splitwise Unequal Split Calculator</title>
+  <meta name="description" content="Free, mobile-friendly itemized bill splitter that calculates per-person costs, shared charges, and rounding differences before entering totals into Splitwise unequal splits.">
+  <meta name="keywords" content="bill splitter, splitwise calculator, unequal split, itemized split, shared charges, BYO fee, service charge, card surcharge, per person cost, group bill, split bill app">
+  <meta name="author" content="Item-Based Bill Splitter">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://your-domain.example.com/">
+  <meta property="og:title" content="Item-Based Bill Splitter | Splitwise Unequal Split Calculator">
+  <meta property="og:description" content="Calculate itemized splits, shared charges, and per-person totals before adding to Splitwise. Works fully offline in your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://your-domain.example.com/">
+  <meta property="og:image" content="https://your-domain.example.com/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Item-Based Bill Splitter | Splitwise Unequal Split Calculator">
+  <meta name="twitter:description" content="Free in-browser calculator for itemized bills, shared surcharges, and Splitwise unequal splits.">
+  <meta name="twitter:image" content="https://your-domain.example.com/og-image.png">
   <link rel="stylesheet" href="style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Item-Based Bill Splitter",
+    "url": "https://your-domain.example.com/",
+    "description": "Free, mobile-friendly itemized bill splitter that handles shared charges and exports to Splitwise unequal splits.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0"
+    }
+  }
+  </script>
 </head>
 <body>
   <header class="hero">
@@ -108,6 +137,19 @@
       </div>
     </section>
   </main>
+
+  <section class="container card" aria-label="About this Splitwise calculator">
+    <h2>About This Splitwise Unequal Split Calculator</h2>
+    <p class="muted">This free bill splitter is optimized for itemized receipts, bulk quantities, and shared surcharges like BYO fees, card surcharges, and service charges. Use it to calculate accurate per-person totals before posting to Splitwise with “Split Unequally.” No sign-in, no tracking, and everything runs locally in your browser.</p>
+    <div class="faq">
+      <h3>Why use this instead of direct Splitwise entry?</h3>
+      <p>Splitwise does not natively handle per-item consumption or bulk packs. This tool calculates unit prices, allocations, and shared charges first, then you paste the ready totals.</p>
+      <h3>Does it work offline?</h3>
+      <p>Yes. Once loaded, it runs entirely in the browser and stores the current session in localStorage.</p>
+      <h3>What charges can I split?</h3>
+      <p>Add any number of shared charges (BYO fee, service charge, card surcharge) and choose which people participate in each charge.</p>
+    </div>
+  </section>
 
   <footer class="footer container">
     <p class="muted">MVP — no data leaves this page. Built to speed up Splitwise’s “Split Unequally”.</p>
