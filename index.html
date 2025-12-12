@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Item-Based Bill Splitter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <h1>Item-Based Bill Splitter</h1>
+      <p class="subtitle">Pre-calculator for Splitwise — all on one page.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Add People</h2>
+          <p class="muted">People appear as chips; removing updates everything.</p>
+        </div>
+        <form id="peopleForm" class="inline-form">
+          <input id="personName" type="text" placeholder="e.g. Alex" required>
+          <button type="submit">Add person</button>
+        </form>
+      </div>
+      <div id="peopleChips" class="chips"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Add Items</h2>
+          <p class="muted">Enter bulk item details; consumption is set per person below.</p>
+        </div>
+        <form id="itemForm" class="stacked-form">
+          <div class="form-row">
+            <label>Label</label>
+            <input id="itemLabel" type="text" placeholder="e.g. Pizza" required>
+          </div>
+          <div class="form-row">
+            <label>Total price</label>
+            <input id="itemPrice" type="number" step="0.01" min="0" placeholder="e.g. 19.80" required>
+          </div>
+          <div class="form-row">
+            <label>Total quantity</label>
+            <input id="itemQty" type="number" step="any" min="0" placeholder="e.g. 15" required>
+          </div>
+          <button type="submit">Add item</button>
+        </form>
+      </div>
+      <div id="itemsList" class="list"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Consumption Table</h2>
+          <p class="muted">Enter how much each person consumed per item.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="consumptionTable"></table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Shared Charges</h2>
+          <p class="muted">Add any surcharges, BYO fees, service charges, etc.</p>
+        </div>
+        <form id="chargeForm" class="inline-form">
+          <input id="chargeLabel" type="text" placeholder="e.g. Card surcharge" required>
+          <input id="chargeAmount" type="number" step="0.01" min="0" placeholder="0.00" required>
+          <button type="submit">Add charge</button>
+        </form>
+      </div>
+      <div id="chargesList" class="list"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Actual Paid</h2>
+          <p class="muted">Optional: compare calculated total with what was paid.</p>
+        </div>
+        <input id="paidTotal" type="number" step="0.01" min="0" placeholder="e.g. 137.50">
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Calculate & Results</h2>
+          <p class="muted">See per-person totals and any mismatch warnings.</p>
+        </div>
+        <div class="actions">
+          <button id="calculateBtn">Recalculate</button>
+          <button id="copyBtn" class="ghost">Copy Splitwise summary</button>
+        </div>
+      </div>
+      <div id="resultsSummary" class="summary"></div>
+      <div class="table-wrap">
+        <table id="resultsTable"></table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <p class="muted">MVP — no data leaves this page. Built to speed up Splitwise’s “Split Unequally”.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
